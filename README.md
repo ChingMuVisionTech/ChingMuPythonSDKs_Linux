@@ -8,7 +8,7 @@
 ## 使用指南
 使用前您需要了解《Python SDK说明.pdf》。<br>
 需要安装python3，并且具有ctypes模块。<br>
-".py"文件可直接运行，数据输出在控制台中。程序执行依赖相对路径中的CMVrpn.dll。
+".py"文件可直接运行，数据输出在控制台中。程序执行依赖相对路径中的libCMVrpn.so。
 
 ## 关于作者
 <a href="http://www.chingmu.com/">青瞳视觉</a>
