@@ -1,5 +1,5 @@
-# ChingMuPythonSDKs
-基于python语言，获取CMAvatar或CMServer发送的数据。<br>
+# ChingMuPythonSDKs_Linux
+基于python语言，获取CMAvatar或CMTracker发送的数据。<br>
 
 ## 功能特性
 1.提供了c++编译的动态库，通过python types模块<br>
