@@ -46,7 +46,7 @@ if __name__ == '__main__':
     cmVrpn = LoadDll(dllPath)
 
     # set server address
-    host = bytes("MCAvatar@127.0.0.1", "gbk")
+    host = bytes("MCAvatar@192.168.3.35", "gbk")
 
     # start vrpn thread
     cmVrpn.CMVrpnStartExtern()

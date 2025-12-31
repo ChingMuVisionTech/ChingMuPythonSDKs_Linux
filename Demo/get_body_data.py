@@ -2,10 +2,12 @@ import os
 import sys
 import time
 from ctypes import *
+import ctypes
+from ctypes import Structure, POINTER, c_long
 
 # Load dynamic Library
 def LoadDll(dllPath):
-    if(os.path.exists(dllPath)):
+    if os.path.exists(dllPath):
         return CDLL(dllPath)
     else:
         print("Chingmu's dynamic Library  does not exist \n")
@@ -19,6 +21,10 @@ def PrintTimecode(timecode):
     frames = ((timecode & 0x00000fe0) >> 5)
     subframes = (timecode & 0x0000001f)
     print("Time code: %d:%d:%d:%d" % (hours, minutes, seconds, frames))
+
+class Timeval(Structure):
+    _fields_ = [("tv_sec", c_long),  # 秒
+                ("tv_usec", c_long)]  # 微秒
 
 # get body(id:0) component 0:x,1:y,2:z,3:rx,4:ry,5:rz,6:rw with time predict
 # warning : When using this function, the 'frameCount' must increase with the number of calls
@@ -39,32 +45,34 @@ def CMTrackerExtern(host,bodyID,frameCount):
 
     # check body detected, must call after CMTrackerExtern
     isBodyDetected = cmVrpn.CMTrackerExternIsDetected(host, bodyID, frameCount)
-    if (isBodyDetected):
+    if isBodyDetected:
         print("pos: X:%f Y:%f Z:%f"%(bodyPos[0], bodyPos[1], bodyPos[2]))
         print("quaternion: rx:%f ry:%f rz:%f rw:%f"%(bodyRot[0], bodyRot[1], bodyRot[2], bodyRot[3]))
     else:
-        print("Rigid body %d not detected"%(bodyID))
+        print("Rigid body %d not detected" % bodyID)
     return isBodyDetected
 
 # get body(id:0) T(XYZ 3), body Quaternion(XYZR 4), timecode without time predict
-def CMTrackerExternTC(host,bodyID,frameCount):
+def CMTrackerExternTC(host, bodyID, frameCount):
     bodyPos = (c_double * 3)()
     bodyRot = (c_double * 4)()
     timecodeData = (c_int * 1)()
-    isBodyDetected = cmVrpn.CMTrackerExternTC(host, bodyID, timecodeData, bodyPos, bodyRot)
+    tv = Timeval()
+    isBodyDetected = cmVrpn.CMTrackerExternTC(host, bodyID, timecodeData, bodyPos, bodyRot, ctypes.byref(tv))
 
-    if (isBodyDetected):
+    if isBodyDetected:
         timecode = timecodeData[0]
+        print(timecode)
         valid = ((timecode & 0x80000000) >> 31)
-        if (True == valid):
+        if True == valid:
             PrintTimecode(timecode)
         else:
-            print("server frame num: %d" % (timecode))
+            print("server frame num: %d" % timecode)
 
         print("pos: X:%f Y:%f Z:%f"%(bodyPos[0], bodyPos[1], bodyPos[2]))
         print("quaternion: rx:%f ry:%f rz:%f rw:%f"%(bodyRot[0], bodyRot[1], bodyRot[2], bodyRot[3]))
     else:
-        print("Rigid body %d not detected" % (bodyID))
+        print("Rigid body %d not detected" % bodyID)
     return isBodyDetected
 
 if __name__ == '__main__':
@@ -76,7 +84,7 @@ if __name__ == '__main__':
     cmVrpn = LoadDll(dllPath)
 
     # set server address
-    host = bytes("MCAvatar@127.0.0.1", "gbk")
+    host = bytes("MCAvatar@192.168.3.35", "gbk")
 
     # start vrpn thread
     cmVrpn.CMVrpnStartExtern()
@@ -85,28 +93,28 @@ if __name__ == '__main__':
     cmVrpn.CMVrpnEnableLog(True)
 
     # Person ID displayed on the server
-    bodyID = 0
+    bodyID = 300
 
     frameCount = 0
 
     getfailed = 0
     loopState = True
-    while(loopState):
-        if(frameCount > 10000):
+    while loopState:
+        if frameCount > 10000:
             loopState = False
 
         # Control acquisition frequency.parameters can be customized.
         time.sleep(0.2)
 
         # Enable functions as required
-        isDataDetected = CMTrackerExtern(host, bodyID, frameCount)
-        # isDataDetected = CMTrackerExternTC(host, bodyID, frameCount)
-        if(isDataDetected):
+        # isDataDetected = CMTrackerExtern(host, bodyID, frameCount)
+        isDataDetected = CMTrackerExternTC(host, bodyID, frameCount)
+        if isDataDetected:
             getfailed = 0
         else:
             getfailed += 1
 
-        if(getfailed > 10):
+        if getfailed > 10:
             print("Continuous acquisition failed, exit the program.")
             loopState = False
 

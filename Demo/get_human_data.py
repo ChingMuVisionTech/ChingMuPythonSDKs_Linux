@@ -28,7 +28,8 @@ def CMHumanExtern(host,humanID,frameCount):
     attitude = (c_double * (3 + MAX_SEGMENT_NUM * 4))()
     isDetected = (c_int * MAX_SEGMENT_NUM)()
     isHumanDetected = cmVrpn.CMHumanExtern(host, humanID, frameCount, attitude, isDetected)
-    if(True == isHumanDetected):
+    print(isHumanDetected)
+    if(isHumanDetected > 0):
         print("pos: X:%f Y:%f Z:%f"%(attitude[0], attitude[1], attitude[2]))
         print("quaternion: rx:%f ry:%f rz:%f rw:%f"%(attitude[3], attitude[4], attitude[5], attitude[6]))
     else:
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     cmVrpn = LoadDll(dllPath)
 
     # set server address
-    host = bytes("MCAvatar@127.0.0.1", "gbk")
+    host = bytes("MCAvatar@192.168.3.35", "gbk")
 
     # start vrpn thread
     cmVrpn.CMVrpnStartExtern()
@@ -112,9 +113,9 @@ if __name__ == '__main__':
             loopState = False
 
         # Enable functions as required
-        # isDataDetected = CMHumanGlobalTLocalRTC(host,humanID,frameCount)
-        isDataDetected = CMRetargetHumanExternTC(host,humanID,frameCount)
-        # isDataDetected = CMHumanExtern(host, humanID, frameCount)
+        isDataDetected = CMHumanGlobalTLocalRTC(host,humanID,frameCount)
+        #isDataDetected = CMRetargetHumanExternTC(host,humanID,frameCount)
+        #isDataDetected = CMHumanExtern(host, humanID, frameCount)
 
         if(isDataDetected):
             getfailed = 0
@@ -122,9 +123,9 @@ if __name__ == '__main__':
         else:
             getfailed += 1
 
-        # if(getfailed > 10):
-        #     print("Continuous acquisition failed, exit the program.")
-        #     loopState = False
+        if(getfailed > 10):
+            print("Continuous acquisition failed, exit the program.")
+            loopState = False
 
     # quit vrpn thread
     cmVrpn.CMVrpnQuitExtern()
